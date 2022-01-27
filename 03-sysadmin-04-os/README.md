@@ -9,7 +9,7 @@
     [Service]
     Restart=always
     User=vagrant
-    EnvironmentFile=/opt/node_exporter/node_exporter.conf
+    EnvironmentFile=-/opt/node_exporter/node_exporter.conf
     ExecStart=/usr/bin/node_exporter $ARGS
     ExecReload=/bin/kill -HUP $MAINPID
     ExecStop=/bin/kill -TERM $MAINPID
