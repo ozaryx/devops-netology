@@ -116,12 +116,14 @@
     
     Jan 23 18:23:02 vagrant systemd[1]: Started Node exporter.
 
+![](img/node_exporter.png)
+
 ## Задание 2
 
 Включенных по умолчанию коллекторов довольно много, они охватывают практически все статистики ОС. 
 Отключены по умолчанию те коллекторы, которые довольно тяжелы для повседневного использования.
 
-для базового мониторинга хоста по CPU, памяти, диску и сети:
+Для базового мониторинга хоста по CPU, памяти, диску и сети:
 
     --collector.cpu           Exposes CPU statistics
     --collector.meminfo       Exposes memory statistics.
@@ -140,11 +142,140 @@
 
 ## Задание 3
 
+    vagrant@vagrant:~$ grep -v '^#' /etc/netdata/netdata.conf
+    [global]
+        run as user = netdata
+        web files owner = root
+        web files group = root
+        # Netdata is not designed to be exposed to potentially hostile
+        # networks. See https://github.com/netdata/netdata/issues/164
+        # bind socket to IP = 127.0.0.1
+        bind socket to IP = 0.0.0.0
+
+    vagrant@vagrant:~$ ps -ef|grep netdata
+    netdata      652       1  2 13:03 ?        00:00:11 /usr/sbin/netdata -D
+    netdata      838     652  0 13:03 ?        00:00:00 /usr/lib/netdata/plugins.d/nfacct.plugin 1
+    netdata      855     652  0 13:03 ?        00:00:00 bash /usr/lib/netdata/plugins.d/tc-qos-helper.sh 1
+    netdata      873     652  1 13:03 ?        00:00:06 /usr/lib/netdata/plugins.d/apps.plugin 1
+    netdata      884     652  0 13:03 ?        00:00:02 /usr/bin/python3 /usr/lib/netdata/plugins.d/python.d.plugin 1
+    vagrant     1578    1487  0 13:12 pts/0    00:00:00 grep --color=auto netdata
+
+    vagrant@vagrant:~$ sudo systemctl list-units | grep netdata
+      netdata.service                                                                           loaded active running   netdata - Real-time performance monitoring
+
+    vagrant@vagrant:~$ sudo systemctl status netdata
+    ● netdata.service - netdata - Real-time performance monitoring
+         Loaded: loaded (/lib/systemd/system/netdata.service; enabled; vendor preset: enabled)
+         Active: active (running) since Thu 2022-01-27 13:03:27 UTC; 10min ago
+           Docs: man:netdata
+                 file:///usr/share/doc/netdata/html/index.html
+                 https://github.com/netdata/netdata
+       Main PID: 652 (netdata)
+          Tasks: 26 (limit: 1659)
+         Memory: 83.8M
+         CGroup: /system.slice/netdata.service
+                 ├─652 /usr/sbin/netdata -D
+                 ├─838 /usr/lib/netdata/plugins.d/nfacct.plugin 1
+                 ├─855 bash /usr/lib/netdata/plugins.d/tc-qos-helper.sh 1
+                 ├─873 /usr/lib/netdata/plugins.d/apps.plugin 1
+                 └─884 /usr/bin/python3 /usr/lib/netdata/plugins.d/python.d.plugin 1
+    
+    Jan 27 13:03:27 vagrant systemd[1]: Started netdata - Real-time performance monitoring.
+
+Netdata предоставляет широкий спектр метрик производительности ОС в разных разрезах и агрегаций.
+![](img/netdata.png)
+
 ## Задание 4
+Да, можно. ОС понимает, что загружается в виртуальной среде
 
-## Задание 
+    vagrant@vagrant:~$ sudo dmesg | grep virtual
+    [    0.002171] CPU MTRRs all blank - virtualized system.
+    [    0.148082] Booting paravirtualized kernel on KVM
+    [    6.060302] systemd[1]: Detected virtualization oracle.
 
-## Задание 
+## Задание 5
+/proc/sys/fs/nr_open (since Linux 2.6.25) - ограничение на количество открытых файловых дескрипторов  
+` This file imposes ceiling on the value to which the RLIMIT_NOFILE resource limit can be raised (see getrlimit(2)).  This ceiling is enforced for  both
+ unprivileged  and  privileged process.  The default value in this file is 1048576.  (Before Linux 2.6.25, the ceiling for RLIMIT_NOFILE was hard-coded
+ to the same value.)`
 
-## Задание 
+Настройка по умолчанию
+
+    vagrant@vagrant:~$ grep fs.nr_open /etc/sysctl.conf
+    vagrant@vagrant:~$ cat /proc/sys/fs/nr_open
+    1048576
+
+ulimit --help  
+
+    Modify shell resource limits.
+
+    Provides control over the resources available to the shell and processes
+    it creates, on systems that allow such control.
+
+    Options:
+    -n	the maximum number of open file descriptors
+
+Установлено ограничение в 1024 открытых файлов для пользователя vagrant 
+
+    vagrant@vagrant:~$ ulimit -n
+    1024
+
+## Задание 6
+
+    vagrant@vagrant:~$ sudo -i
+    root@vagrant:~# unshare -f --pid --mount-proc sleep 1h
+
+    root@vagrant:~# ps axjf | grep sleep
+      22325   22341   22341    1606 pts/0      22341 S+       0   0:00  |                   \_ unshare -f --pid --mount-proc sleep 1h
+      22341   22342   22341    1606 pts/0      22341 S+       0   0:00  |                       \_ sleep 1h
+      22344   22394   22393    1843 pts/1      22393 S+       0   0:00                      \_ grep --color=auto sleep
+
+    root@vagrant:~# nsenter --target 22342 --pid --mount
+    root@vagrant:/# ps aux
+    USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+    root           1  0.0  0.0   7228   592 pts/0    S+   14:40   0:00 sleep 1h
+    root           2  0.2  0.2   8960  4136 pts/1    S    14:43   0:00 -bash
+    root          13  0.0  0.2  10616  3308 pts/1    R+   14:43   0:00 ps aux
+
+
+## Задание 7
+`:(){ :|:& };:` - Это функция с именем ":", которая ссылается сама на себя рекурсивно и запускает еще две копии себя
+
+   `:() {
+      : | : &
+   }
+   :`
+
+$ :(){ :|:& };:
+
+При попытке выполнить какую-либо команду выводится
+
+    -bash: fork: retry: Resource temporarily unavailable
+    -bash: fork: Resource temporarily unavailable
+    -bash: fork: Resource temporarily unavailable
+    -bash: fork: retry: Resource temporarily unavailable
+    -bash: fork: Resource temporarily unavailable
+    -bash: fork: Resource temporarily unavailable
+    -bash: fork: Resource temporarily unavailable
+    -bash: fork: Resource temporarily unavailable
+    -bash: fork: retry: Resource temporarily unavailable
+    -bash: fork: retry: Resource temporarily unavailable
+    -bash: fork: retry: Resource temporarily unavailable
+    -bash: fork: retry: Resource temporarily unavailable
+    -bash: fork: Resource temporarily unavailable
+    -bash: fork: Resource temporarily unavailable
+
+$ sudo dmesg
+
+    [ 1612.469152] cgroup: fork rejected by pids controller in /user.slice/user-1000.slice/session-3.scope
+    [ 1621.243968] cgroup: fork rejected by pids controller in /user.slice/user-1000.slice/session-7.scope
+
+Судя по всему механизм CGroup ограничил создание процессов с помощью pids controller
+
+ulimit -u	the maximum number of user processes
+
+Есть ограничение на количество запущенных процессов для пользователя
+
+    vagrant@vagrant:~$ ulimit -u
+    5532
 
