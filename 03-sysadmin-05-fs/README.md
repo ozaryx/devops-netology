@@ -7,6 +7,84 @@
 Не могут, потому что права и владелец назначаются файлу. Имя файла это жесткая ссылка на индексный дескриптор файла. 
 Не важно сколько жестких ссылок будет ссылаться на файл, все они указывают на один и тот же индексный дескриптор.
 
+Пример,
+
+    root@vagrant:~# touch test1
+    root@vagrant:~# stat test1
+      File: test1
+      Size: 0         	Blocks: 0          IO Block: 4096   regular empty file
+    Device: fd00h/64768d	Inode: 1703948     Links: 1
+    Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)
+    Access: 2022-02-02 14:57:07.590326988 +0000
+    Modify: 2022-02-02 14:57:07.590326988 +0000
+    Change: 2022-02-02 14:57:07.590326988 +0000
+     Birth: -
+
+    root@vagrant:~# ln test1 test2
+
+    root@vagrant:~# stat test2
+      File: test2
+      Size: 0         	Blocks: 0          IO Block: 4096   regular empty file
+    Device: fd00h/64768d	Inode: 1703948     Links: 2
+    Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)
+    Access: 2022-02-02 14:57:07.590326988 +0000
+    Modify: 2022-02-02 14:57:07.590326988 +0000
+    Change: 2022-02-02 14:57:25.027040927 +0000
+     Birth: -
+
+    root@vagrant:~# ls -l test[12]
+    -rw-r--r-- 2 root root 0 Feb  2 14:57 test1
+    -rw-r--r-- 2 root root 0 Feb  2 14:57 test2
+
+    root@vagrant:~# chmod u+x test1
+
+    root@vagrant:~# ls -l test[12]
+    -rwxr--r-- 2 root root 0 Feb  2 14:57 test1
+    -rwxr--r-- 2 root root 0 Feb  2 14:57 test2
+
+    root@vagrant:~# stat test[12]
+      File: test1
+      Size: 0         	Blocks: 0          IO Block: 4096   regular empty file
+    Device: fd00h/64768d	Inode: 1703948     Links: 2
+    Access: (0744/-rwxr--r--)  Uid: (    0/    root)   Gid: (    0/    root)
+    Access: 2022-02-02 14:57:07.590326988 +0000
+    Modify: 2022-02-02 14:57:07.590326988 +0000
+    Change: 2022-02-02 14:58:08.536784757 +0000
+     Birth: -
+      File: test2
+      Size: 0         	Blocks: 0          IO Block: 4096   regular empty file
+    Device: fd00h/64768d	Inode: 1703948     Links: 2
+    Access: (0744/-rwxr--r--)  Uid: (    0/    root)   Gid: (    0/    root)
+    Access: 2022-02-02 14:57:07.590326988 +0000
+    Modify: 2022-02-02 14:57:07.590326988 +0000
+    Change: 2022-02-02 14:58:08.536784757 +0000
+     Birth: -
+
+    root@vagrant:~# chown root:staff test1
+
+    root@vagrant:~# ls -l test[12]
+    -rwxr--r-- 2 root staff 0 Feb  2 14:57 test1
+    -rwxr--r-- 2 root staff 0 Feb  2 14:57 test2
+
+    root@vagrant:~# stat test[12]
+      File: test1
+      Size: 0         	Blocks: 0          IO Block: 4096   regular empty file
+    Device: fd00h/64768d	Inode: 1703948     Links: 2
+    Access: (0744/-rwxr--r--)  Uid: (    0/    root)   Gid: (   50/   staff)
+    Access: 2022-02-02 14:57:07.590326988 +0000
+    Modify: 2022-02-02 14:57:07.590326988 +0000
+    Change: 2022-02-02 14:58:44.894954623 +0000
+     Birth: -
+      File: test2
+      Size: 0         	Blocks: 0          IO Block: 4096   regular empty file
+    Device: fd00h/64768d	Inode: 1703948     Links: 2
+    Access: (0744/-rwxr--r--)  Uid: (    0/    root)   Gid: (   50/   staff)
+    Access: 2022-02-02 14:57:07.590326988 +0000
+    Modify: 2022-02-02 14:57:07.590326988 +0000
+    Change: 2022-02-02 14:58:44.894954623 +0000
+     Birth: -
+
+
 ## Задание 3
 
     macbook0P0LYWK:~ kmankov$ mkdir sysadmin-05
@@ -35,7 +113,8 @@
 
 ## Задание 4
 
-    vagrant@vagrant:~$ sudo fdisk -l /dev/sdb
+    vagrant@vagrant:~$ sudo -i
+    root@vagrant:~# fdisk -l /dev/sdb
     Disk /dev/sdb: 2.51 GiB, 2684354560 bytes, 5242880 sectors
     Disk model: VBOX HARDDISK
     Units: sectors of 1 * 512 = 512 bytes
@@ -43,7 +122,7 @@
     I/O size (minimum/optimal): 512 bytes / 512 bytes
 
     
-    vagrant@vagrant:~$ sudo fdisk /dev/sdb
+    root@vagrant:~# fdisk /dev/sdb
 
     Welcome to fdisk (util-linux 2.34).
     Changes will remain in memory only, until you decide to write them.
@@ -92,7 +171,7 @@
     Calling ioctl() to re-read partition table.
     Syncing disks.
     
-    vagrant@vagrant:~$ sudo fdisk -l /dev/sdb
+    root@vagrant:~# fdisk -l /dev/sdb
     Disk /dev/sdb: 2.51 GiB, 2684354560 bytes, 5242880 sectors
     Disk model: VBOX HARDDISK
     Units: sectors of 1 * 512 = 512 bytes
@@ -105,10 +184,29 @@
     /dev/sdb1          2048 4196351 4194304    2G 83 Linux
     /dev/sdb2       4196352 5242879 1046528  511M 83 Linux
 
+    root@vagrant:~# lsblk
+    NAME                      MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+    loop0                       7:0    0 70.3M  1 loop /snap/lxd/21029
+    loop1                       7:1    0 32.3M  1 loop /snap/snapd/12704
+    loop2                       7:2    0 55.4M  1 loop /snap/core18/2128
+    loop3                       7:3    0 55.5M  1 loop /snap/core18/2284
+    loop4                       7:4    0 43.4M  1 loop /snap/snapd/14549
+    loop5                       7:5    0 61.9M  1 loop /snap/core20/1328
+    loop6                       7:6    0 67.2M  1 loop /snap/lxd/21835
+    sda                         8:0    0   64G  0 disk
+    ├─sda1                      8:1    0    1M  0 part
+    ├─sda2                      8:2    0    1G  0 part /boot
+    └─sda3                      8:3    0   63G  0 part
+      └─ubuntu--vg-ubuntu--lv 253:0    0 31.5G  0 lvm  /
+    sdb                         8:16   0  2.5G  0 disk
+    ├─sdb1                      8:17   0    2G  0 part
+    └─sdb2                      8:18   0  511M  0 part
+    sdc                         8:32   0  2.5G  0 disk
+    
+
 ## Задание 5
     
-    vagrant@vagrant:~$ man sfdisk
-    vagrant@vagrant:~$ sudo -i
+    root@vagrant:~# man sfdisk
 
     root@vagrant:~# sfdisk --dump /dev/sdb | sfdisk /dev/sdc
 
@@ -154,7 +252,28 @@
     Device     Boot   Start     End Sectors  Size Id Type
     /dev/sdc1          2048 4196351 4194304    2G 83 Linux
     /dev/sdc2       4196352 5242879 1046528  511M 83 Linux
-    root@vagrant:~#
+
+    root@vagrant:~# lsblk
+    NAME                      MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+    loop0                       7:0    0 70.3M  1 loop /snap/lxd/21029
+    loop1                       7:1    0 32.3M  1 loop /snap/snapd/12704
+    loop2                       7:2    0 55.4M  1 loop /snap/core18/2128
+    loop3                       7:3    0 55.5M  1 loop /snap/core18/2284
+    loop4                       7:4    0 43.4M  1 loop /snap/snapd/14549
+    loop5                       7:5    0 61.9M  1 loop /snap/core20/1328
+    loop6                       7:6    0 67.2M  1 loop /snap/lxd/21835
+    sda                         8:0    0   64G  0 disk
+    ├─sda1                      8:1    0    1M  0 part
+    ├─sda2                      8:2    0    1G  0 part /boot
+    └─sda3                      8:3    0   63G  0 part
+      └─ubuntu--vg-ubuntu--lv 253:0    0 31.5G  0 lvm  /
+    sdb                         8:16   0  2.5G  0 disk
+    ├─sdb1                      8:17   0    2G  0 part
+    └─sdb2                      8:18   0  511M  0 part
+    sdc                         8:32   0  2.5G  0 disk
+    ├─sdc1                      8:33   0    2G  0 part
+    └─sdc2                      8:34   0  511M  0 part
+
 
 ## Задание 6
 
@@ -176,6 +295,29 @@
     root@vagrant:~# ls -l /dev/md0
     brw-rw---- 1 root disk 9, 0 Jan 31 16:21 /dev/md0
 
+    root@vagrant:~# lsblk
+    NAME                      MAJ:MIN RM  SIZE RO TYPE  MOUNTPOINT
+    loop0                       7:0    0 70.3M  1 loop  /snap/lxd/21029
+    loop1                       7:1    0 32.3M  1 loop  /snap/snapd/12704
+    loop2                       7:2    0 55.4M  1 loop  /snap/core18/2128
+    loop3                       7:3    0 55.5M  1 loop  /snap/core18/2284
+    loop4                       7:4    0 43.4M  1 loop  /snap/snapd/14549
+    loop5                       7:5    0 61.9M  1 loop  /snap/core20/1328
+    loop6                       7:6    0 67.2M  1 loop  /snap/lxd/21835
+    sda                         8:0    0   64G  0 disk
+    ├─sda1                      8:1    0    1M  0 part
+    ├─sda2                      8:2    0    1G  0 part  /boot
+    └─sda3                      8:3    0   63G  0 part
+      └─ubuntu--vg-ubuntu--lv 253:0    0 31.5G  0 lvm   /
+    sdb                         8:16   0  2.5G  0 disk
+    ├─sdb1                      8:17   0    2G  0 part
+    │ └─md0                     9:0    0    2G  0 raid1
+    └─sdb2                      8:18   0  511M  0 part
+    sdc                         8:32   0  2.5G  0 disk
+    ├─sdc1                      8:33   0    2G  0 part
+    │ └─md0                     9:0    0    2G  0 raid1
+    └─sdc2                      8:34   0  511M  0 part
+
 
 ## Задание 7
 
@@ -187,6 +329,31 @@
 
     root@vagrant:~# ls -l /dev/md1
     brw-rw---- 1 root disk 9, 1 Jan 31 16:24 /dev/md1
+
+    root@vagrant:~# lsblk
+    NAME                      MAJ:MIN RM  SIZE RO TYPE  MOUNTPOINT
+    loop0                       7:0    0 70.3M  1 loop  /snap/lxd/21029
+    loop1                       7:1    0 32.3M  1 loop  /snap/snapd/12704
+    loop2                       7:2    0 55.4M  1 loop  /snap/core18/2128
+    loop3                       7:3    0 55.5M  1 loop  /snap/core18/2284
+    loop4                       7:4    0 43.4M  1 loop  /snap/snapd/14549
+    loop5                       7:5    0 61.9M  1 loop  /snap/core20/1328
+    loop6                       7:6    0 67.2M  1 loop  /snap/lxd/21835
+    sda                         8:0    0   64G  0 disk
+    ├─sda1                      8:1    0    1M  0 part
+    ├─sda2                      8:2    0    1G  0 part  /boot
+    └─sda3                      8:3    0   63G  0 part
+      └─ubuntu--vg-ubuntu--lv 253:0    0 31.5G  0 lvm   /
+    sdb                         8:16   0  2.5G  0 disk
+    ├─sdb1                      8:17   0    2G  0 part
+    │ └─md0                     9:0    0    2G  0 raid1
+    └─sdb2                      8:18   0  511M  0 part
+      └─md1                     9:1    0 1018M  0 raid0
+    sdc                         8:32   0  2.5G  0 disk
+    ├─sdc1                      8:33   0    2G  0 part
+    │ └─md0                     9:0    0    2G  0 raid1
+    └─sdc2                      8:34   0  511M  0 part
+      └─md1                     9:1    0 1018M  0 raid0
 
 
 ## Задание 8
@@ -242,6 +409,34 @@
       r0_lv     md_vg     -wi-a----- 100.00m
       ubuntu-lv ubuntu-vg -wi-ao----  31.50g
 
+    root@vagrant:~# lsblk
+    NAME                      MAJ:MIN RM  SIZE RO TYPE  MOUNTPOINT
+    loop0                       7:0    0 70.3M  1 loop  /snap/lxd/21029
+    loop1                       7:1    0 32.3M  1 loop  /snap/snapd/12704
+    loop2                       7:2    0 55.4M  1 loop  /snap/core18/2128
+    loop3                       7:3    0 55.5M  1 loop  /snap/core18/2284
+    loop4                       7:4    0 43.4M  1 loop  /snap/snapd/14549
+    loop5                       7:5    0 61.9M  1 loop  /snap/core20/1328
+    loop6                       7:6    0 67.2M  1 loop  /snap/lxd/21835
+    sda                         8:0    0   64G  0 disk
+    ├─sda1                      8:1    0    1M  0 part
+    ├─sda2                      8:2    0    1G  0 part  /boot
+    └─sda3                      8:3    0   63G  0 part
+      └─ubuntu--vg-ubuntu--lv 253:0    0 31.5G  0 lvm   /
+    sdb                         8:16   0  2.5G  0 disk
+    ├─sdb1                      8:17   0    2G  0 part
+    │ └─md0                     9:0    0    2G  0 raid1
+    └─sdb2                      8:18   0  511M  0 part
+      └─md1                     9:1    0 1018M  0 raid0
+        └─md_vg-r0_lv         253:1    0  100M  0 lvm
+    sdc                         8:32   0  2.5G  0 disk
+    ├─sdc1                      8:33   0    2G  0 part
+    │ └─md0                     9:0    0    2G  0 raid1
+    └─sdc2                      8:34   0  511M  0 part
+      └─md1                     9:1    0 1018M  0 raid0
+        └─md_vg-r0_lv         253:1    0  100M  0 lvm
+
+
 ## Задание 11
 
     root@vagrant:~# lvdisplay md_vg/r0_lv
@@ -281,6 +476,34 @@
     
     root@vagrant:~# mount | grep /tmp/new
     /dev/mapper/md_vg-r0_lv on /tmp/new type ext4 (rw,relatime,stripe=256)
+
+    root@vagrant:~# lsblk
+    NAME                      MAJ:MIN RM  SIZE RO TYPE  MOUNTPOINT
+    loop0                       7:0    0 70.3M  1 loop  /snap/lxd/21029
+    loop1                       7:1    0 32.3M  1 loop  /snap/snapd/12704
+    loop2                       7:2    0 55.4M  1 loop  /snap/core18/2128
+    loop3                       7:3    0 55.5M  1 loop  /snap/core18/2284
+    loop4                       7:4    0 43.4M  1 loop  /snap/snapd/14549
+    loop5                       7:5    0 61.9M  1 loop  /snap/core20/1328
+    loop6                       7:6    0 67.2M  1 loop  /snap/lxd/21835
+    sda                         8:0    0   64G  0 disk
+    ├─sda1                      8:1    0    1M  0 part
+    ├─sda2                      8:2    0    1G  0 part  /boot
+    └─sda3                      8:3    0   63G  0 part
+      └─ubuntu--vg-ubuntu--lv 253:0    0 31.5G  0 lvm   /
+    sdb                         8:16   0  2.5G  0 disk
+    ├─sdb1                      8:17   0    2G  0 part
+    │ └─md0                     9:0    0    2G  0 raid1
+    └─sdb2                      8:18   0  511M  0 part
+      └─md1                     9:1    0 1018M  0 raid0
+        └─md_vg-r0_lv         253:1    0  100M  0 lvm   /tmp/new
+    sdc                         8:32   0  2.5G  0 disk
+    ├─sdc1                      8:33   0    2G  0 part
+    │ └─md0                     9:0    0    2G  0 raid1
+    └─sdc2                      8:34   0  511M  0 part
+      └─md1                     9:1    0 1018M  0 raid0
+        └─md_vg-r0_lv         253:1    0  100M  0 lvm   /tmp/new
+
 
 ## Задание 13
 
@@ -337,13 +560,42 @@
 
 ## Задание 16
 
-    root@vagrant:~# pvmove /dev/md1 /dev/md0
+    root@vagrant:~# pvmove /dev/md1
       /dev/md1: Moved: 20.00%
       /dev/md1: Moved: 100.00%
+
+    root@vagrant:~# lsblk
+    NAME                      MAJ:MIN RM  SIZE RO TYPE  MOUNTPOINT
+    loop0                       7:0    0 70.3M  1 loop  /snap/lxd/21029
+    loop1                       7:1    0 32.3M  1 loop  /snap/snapd/12704
+    loop2                       7:2    0 55.4M  1 loop  /snap/core18/2128
+    loop3                       7:3    0 55.5M  1 loop  /snap/core18/2284
+    loop4                       7:4    0 43.4M  1 loop  /snap/snapd/14549
+    loop5                       7:5    0 61.9M  1 loop  /snap/core20/1328
+    loop6                       7:6    0 67.2M  1 loop  /snap/lxd/21835
+    sda                         8:0    0   64G  0 disk
+    ├─sda1                      8:1    0    1M  0 part
+    ├─sda2                      8:2    0    1G  0 part  /boot
+    └─sda3                      8:3    0   63G  0 part
+      └─ubuntu--vg-ubuntu--lv 253:0    0 31.5G  0 lvm   /
+    sdb                         8:16   0  2.5G  0 disk
+    ├─sdb1                      8:17   0    2G  0 part
+    │ └─md0                     9:0    0    2G  0 raid1
+    │   └─md_vg-r0_lv         253:1    0  100M  0 lvm   /tmp/new
+    └─sdb2                      8:18   0  511M  0 part
+      └─md1                     9:1    0 1018M  0 raid0
+    sdc                         8:32   0  2.5G  0 disk
+    ├─sdc1                      8:33   0    2G  0 part
+    │ └─md0                     9:0    0    2G  0 raid1
+    │   └─md_vg-r0_lv         253:1    0  100M  0 lvm   /tmp/new
+    └─sdc2                      8:34   0  511M  0 part
+      └─md1                     9:1    0 1018M  0 raid0
 
 
 ## Задание 17
 
+    root@vagrant:~# gzip -t /tmp/new/test.gz; echo $?
+    0
     root@vagrant:~# mdadm --fail /dev/md0 /dev/sdb1
     mdadm: set /dev/sdb1 faulty in /dev/md0
 
@@ -354,12 +606,19 @@
     
     md0 : active raid1 sdc1[1] sdb1[0](F)
           2094080 blocks super 1.2 [2/1] [_U]
+    
+    unused devices: <none>
+
 
 ## Задание 18
 
-    root@vagrant:~# dmesg
-    ...
-    [ 5524.361957] md/raid1:md0: Disk failure on sdb1, disabling device.
+    root@vagrant:~# dmesg | grep md0
+    [  921.900288] md/raid1:md0: not clean -- starting background reconstruction
+    [  921.900291] md/raid1:md0: active with 2 out of 2 mirrors
+    [  921.900322] md0: detected capacity change from 0 to 2144337920
+    [  921.902355] md: resync of RAID array md0
+    [  932.321853] md: md0: resync done.
+    [ 1563.781033] md/raid1:md0: Disk failure on sdb1, disabling device.
                    md/raid1:md0: Operation continuing on 1 devices.
 
 ## Задание 19
