@@ -3,7 +3,7 @@
 ## Задание 1.
 Проверьте список доступных сетевых интерфейсов на вашем компьютере. Какие команды есть для этого в Linux и в Windows?
 
-MacOS, Linux, ...
+Linux
 ```shell
 vagrant:~$ ip l
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
