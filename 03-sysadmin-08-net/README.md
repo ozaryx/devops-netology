@@ -54,6 +54,66 @@ Paths: (22 available, best #22, table default)
 ## Задание 2. 
 Создайте dummy0 интерфейс в Ubuntu. Добавьте несколько статических маршрутов. Проверьте таблицу маршрутизации.
 
+```shell
+vagrant@vagrant:~$ sudo su
+root@vagrant:/home/vagrant# ip link add dev dum0 type dummy
+
+root@vagrant:/home/vagrant# ip link show dum0
+3: dum0: <BROADCAST,NOARP> mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+    link/ether 22:13:45:15:1b:29 brd ff:ff:ff:ff:ff:ff
+
+root@vagrant:/home/vagrant# ip address add 192.168.99.9/30 dev dum0
+
+root@vagrant:/home/vagrant# ip address show dum0
+3: dum0: <BROADCAST,NOARP> mtu 1500 qdisc noop state DOWN group default qlen 1000
+    link/ether 22:13:45:15:1b:29 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.99.9/30 scope global dum0
+       valid_lft forever preferred_lft forever
+```
+
+Для поднятия интерфейса после перезагрузки надо создать конфигурацию интерфейса через systemd-networkd
+```shell
+root@vagrant:/home/vagrant# cat <<EOF > /etc/systemd/network/dum0.netdev
+> [NetDev]
+> Name=dum0
+> Kind=dummy
+> EOF
+
+root@vagrant:/home/vagrant# cat <<EOF > /etc/systemd/network/dum0.network
+> [Match]
+> Name=dum0
+>  
+> [Network]
+> Address=192.168.98.9/32
+> EOF
+
+root@vagrant:/home/vagrant# ip l
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 08:00:27:b1:28:5d brd ff:ff:ff:ff:ff:ff
+
+root@vagrant:/home/vagrant# systemctl restart systemd-networkd.service
+
+root@vagrant:/home/vagrant# ip l
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 08:00:27:b1:28:5d brd ff:ff:ff:ff:ff:ff
+3: dum0: <BROADCAST,NOARP,UP,LOWER_UP> mtu 1500 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+    link/ether 96:a9:55:aa:08:91 brd ff:ff:ff:ff:ff:ff
+
+root@vagrant:/home/vagrant# ip a s dum0
+3: dum0: <BROADCAST,NOARP,UP,LOWER_UP> mtu 1500 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/ether 96:a9:55:aa:08:91 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.98.9/32 scope global dum0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::94a9:55ff:feaa:891/64 scope link 
+       valid_lft forever preferred_lft forever
+```
+
+
+
 ## Задание 4.
 Проверьте открытые TCP порты в Ubuntu, какие протоколы и приложения используют эти порты? Приведите несколько примеров.
 
@@ -79,9 +139,10 @@ UNCONN             0                  0                               127.0.0.53
 UNCONN             0                  0                              10.0.2.15%eth0:68                                0.0.0.0:*                                  
 ```
 
-
 ## Задание 6.
 Используя diagrams.net, создайте L3 диаграмму вашей домашней сети или любой другой сети, с которой вы работали. 
+
+Файл [VideoNetDiagram.drawio](https://github.com/ozaryx/devops-netology/blob/main/03-sysadmin-08-net/VideoNetDiagram.drawio)
 
  ---
 ## Задание для самостоятельной отработки (необязательно к выполнению)
