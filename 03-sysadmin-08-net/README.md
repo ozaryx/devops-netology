@@ -112,7 +112,19 @@ root@vagrant:/home/vagrant# ip a s dum0
        valid_lft forever preferred_lft forever
 ```
 
+```shell
+root@vagrant:/home/vagrant# ip route add 192.168.200.0/24 via 192.168.98.9
+root@vagrant:/home/vagrant# ip route add 192.168.0.0/24 via 10.0.2.2
+```
 
+```shell
+root@vagrant:/home/vagrant# ip route
+default via 10.0.2.2 dev eth0 proto dhcp src 10.0.2.15 metric 100 
+10.0.2.0/24 dev eth0 proto kernel scope link src 10.0.2.15 
+10.0.2.2 dev eth0 proto dhcp scope link src 10.0.2.15 metric 100 
+192.168.0.0/24 via 10.0.2.2 dev eth0 
+192.168.200.0/24 via 192.168.98.9 dev dum0 
+```
 
 ## Задание 4.
 Проверьте открытые TCP порты в Ubuntu, какие протоколы и приложения используют эти порты? Приведите несколько примеров.
@@ -128,6 +140,9 @@ tcp         ESTAB        0            0                       10.0.2.15:22      
 tcp         LISTEN       0            4096                            *:9100                         *:*            users:(("node_exporter",pid=654,fd=3))       
 tcp         LISTEN       0            128                          [::]:22                        [::]:*                                                         
 ```
+127.0.0.53%lo:53 - ДНС  
+0.0.0.0:22 - SSH  
+*:9100 - node_exporter  
 
 ## Задание 5.
 Проверьте используемые UDP сокеты в Ubuntu, какие протоколы и приложения используют эти порты?
