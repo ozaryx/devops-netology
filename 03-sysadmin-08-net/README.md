@@ -111,7 +111,12 @@ root@vagrant:/home/vagrant# ip a s dum0
     inet6 fe80::94a9:55ff:feaa:891/64 scope link 
        valid_lft forever preferred_lft forever
 ```
-
+```shell
+root@vagrant:/home/vagrant# ip route 
+default via 10.0.2.2 dev eth0 proto dhcp src 10.0.2.15 metric 100 
+10.0.2.0/24 dev eth0 proto kernel scope link src 10.0.2.15 
+10.0.2.2 dev eth0 proto dhcp scope link src 10.0.2.15 metric 100 
+```
 ```shell
 root@vagrant:/home/vagrant# ip route add 192.168.200.0/24 via 192.168.98.9
 root@vagrant:/home/vagrant# ip route add 192.168.0.0/24 via 10.0.2.2
