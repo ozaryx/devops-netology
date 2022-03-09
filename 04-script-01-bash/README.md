@@ -189,3 +189,16 @@ if [ ${#message} -gt 30 ]; then
 fi
 
 ```
+
+```shell
+$ git commit -m "add line"
+Commit doesn't start with [04-script-01-bash]
+
+$ git commit -m "[04-script-01-bash] delete line from file1.sh long commit message"
+Commit message more than 30 characters
+
+$ git commit -m "[04-script-01-bash] delete lin"
+[master e7f413c] [04-script-01-bash] delete lin
+ 1 file changed, 2 deletions(-)
+
+```
