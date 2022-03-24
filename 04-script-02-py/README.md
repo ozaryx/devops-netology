@@ -162,12 +162,44 @@ kmankov$ ~/show_diff.py ~/vagrant/
 
 ### Ваш скрипт:
 ```python
-???
+#!/usr/bin/env python3
+
+import dns.resolver
+import requests
+
+services_list = ['drive.google.com', 'mail.google.com', 'google.com']
+qtype = 'A'
+
+for service in services_list:
+    # for qtype in 'A', 'AAAA', 'MX', 'NS', 'TXT', 'SOA':
+    answer = dns.resolver.resolve(service,qtype, raise_on_no_answer=False)
+    if answer.rrset is not None:
+        print(answer.rrset)
+
+
+
 ```
 
 ### Вывод скрипта при запуске при тестировании:
 ```
-???
+Service drive.google.com - status True
+Service mail.google.com - status True
+Service google.com - status True
+Service drive.google.com - status True
+Service mail.google.com - status True
+Service google.com - status True
+Service drive.google.com - status True
+Service mail.google.com - status True
+Service google.com - status True
+Service drive.google.com - status True
+Service mail.google.com - status True
+Service google.com - status True
+Service drive.google.com - status True
+Service mail.google.com - status True
+Service google.com - status True
+[ERROR] drive.google.com IP mismatch: new IP 209.85.233.194 not in the list {'64.233.165.194'}
+Service drive.google.com - status True
+
 ```
 
 ## Дополнительное задание (со звездочкой*) - необязательно к выполнению
