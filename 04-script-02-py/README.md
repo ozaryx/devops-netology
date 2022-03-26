@@ -166,40 +166,87 @@ kmankov$ ~/show_diff.py ~/vagrant/
 
 import dns.resolver
 import requests
+import os
+import signal
+import time
 
-services_list = ['drive.google.com', 'mail.google.com', 'google.com']
-qtype = 'A'
+os.system("clear")
 
-for service in services_list:
-    # for qtype in 'A', 'AAAA', 'MX', 'NS', 'TXT', 'SOA':
-    answer = dns.resolver.resolve(service,qtype, raise_on_no_answer=False)
-    if answer.rrset is not None:
-        print(answer.rrset)
+etl_dict = {}
+# etl_dict = {'drive.google.com': {'64.233.162.194'},
+#             'mail.google.com': {'64.233.165.18', '64.233.165.17', '64.233.165.19', '64.233.165.83'},
+#             'google.com': {'64.233.162.139', '64.233.162.113', '64.233.162.102', '64.233.162.101',
+#                            '64.233.162.138', '64.233.162.100'}}
+
+services_list: list[str] = ['drive.google.com', 'mail.google.com', 'google.com']
+query_type: str = 'A'
+check_interval = 10
 
 
+def handler(signum, frame):
+    res = input("Ctrl-c was pressed. Do you really want to exit? y/n ")
+    if res == 'y':
+        exit(1)
 
+
+def url_ok(url):
+    r = requests.head(url)
+    return str(r.status_code) in ("200", "301", "302",)
+
+
+def dns_resolve(fqdn):
+    r = dns.resolver.resolve(fqdn, query_type, raise_on_no_answer=False)
+    return r
+
+
+signal.signal(signal.SIGINT, handler)
+
+while 1:
+    service_dict = {}
+    for service in services_list:
+        ip_list = set()
+        answer = dns_resolve(service)
+        for val in answer:
+            ip = val.to_text()
+            ip_list.add(ip)
+            if service in etl_dict:
+                if ip not in etl_dict[service]:
+                    print(f'[ERROR] {service} IP mismatch: new IP {ip} not in the IP list {etl_dict[service]}')
+
+        service_dict.update([(service, ip_list)])
+
+        if url_ok(f'https://{service}'):
+            service_status = 'Connection OK'
+        else:
+            service_status = 'Connection Failed'
+
+        print(f'{service} - {service_dict[service]} - status {service_status}')
+
+    etl_dict = service_dict
+
+    time.sleep(check_interval)
+    
+    # если нужно очищать терминал перед выводом результатов текущей проверки, раскомментировать
+    # os.system("clear")
 ```
 
 ### Вывод скрипта при запуске при тестировании:
 ```
-Service drive.google.com - status True
-Service mail.google.com - status True
-Service google.com - status True
-Service drive.google.com - status True
-Service mail.google.com - status True
-Service google.com - status True
-Service drive.google.com - status True
-Service mail.google.com - status True
-Service google.com - status True
-Service drive.google.com - status True
-Service mail.google.com - status True
-Service google.com - status True
-Service drive.google.com - status True
-Service mail.google.com - status True
-Service google.com - status True
-[ERROR] drive.google.com IP mismatch: new IP 209.85.233.194 not in the list {'64.233.165.194'}
-Service drive.google.com - status True
-
+drive.google.com - {'142.251.1.194'} - status Connection OK
+mail.google.com - {'142.251.1.18', '142.251.1.19', '142.251.1.83', '142.251.1.17'} - status Connection OK
+google.com - {'209.85.233.102', '209.85.233.100', '209.85.233.113', '209.85.233.101', '209.85.233.138', '209.85.233.139'} - status Connection OK
+drive.google.com - {'142.251.1.194'} - status Connection OK
+mail.google.com - {'142.251.1.18', '142.251.1.19', '142.251.1.83', '142.251.1.17'} - status Connection OK
+google.com - {'209.85.233.102', '209.85.233.100', '209.85.233.113', '209.85.233.101', '209.85.233.138', '209.85.233.139'} - status Connection OK
+[ERROR] drive.google.com IP mismatch: new IP 108.177.14.194 not in the IP list {'142.251.1.194'}
+drive.google.com - {'108.177.14.194'} - status Connection OK
+mail.google.com - {'142.251.1.18', '142.251.1.19', '142.251.1.83', '142.251.1.17'} - status Connection OK
+google.com - {'209.85.233.102', '209.85.233.100', '209.85.233.113', '209.85.233.101', '209.85.233.138', '209.85.233.139'} - status Connection OK
+drive.google.com - {'108.177.14.194'} - status Connection OK
+mail.google.com - {'142.251.1.18', '142.251.1.19', '142.251.1.83', '142.251.1.17'} - status Connection OK
+google.com - {'209.85.233.102', '209.85.233.100', '209.85.233.113', '209.85.233.101', '209.85.233.138', '209.85.233.139'} - status Connection OK
+drive.google.com - {'108.177.14.194'} - status Connection OK
+^CCtrl-c was pressed. Do you really want to exit? y/n y
 ```
 
 ## Дополнительное задание (со звездочкой*) - необязательно к выполнению
